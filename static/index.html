@@ -4,23 +4,31 @@
 <head>
   <meta charset="utf-8">
   <title>ShakeSearch</title>
-  <link rel="stylesheet" href="style.css">
+
+  <link rel="stylesheet" href="main.css">
   <meta name="theme-color" content="#fafafa">
 </head>
 
 <body>
-    <p>
-        <form id="form">
-            <label for="query">Query</label>
-            <input type="text" id="query" name="query">
-            <button type="submit">Search</button>
-        </form>
-    </p>
-    <p>
-        <table id="table">
-          <tbody id="table-body"></tbody>
-        </table>
-    </p>
+    <div class="flexbox">
+        <p>
+            <form id="form">
+                <div class="search">
+                    <div>
+                        <input type="text" id="query" name="query" placeholder="Search . . .">
+                    </div>
+                    <button type="submit">Search</button>
+                </div>
+            </form>
+        </p>
+        <p>
+            <div style="align-content: center">
+                <table id="table">
+                  <tbody id="table-body"></tbody>
+                </table>
+            </div>
+        </p>
+    </div>
   <script src="app.js"></script>
 </body>
 
