@@ -9,10 +9,12 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"pulley.com/shakesearch/src/search"
 )
 
 func main() {
-	searcher := Searcher{}
+	//searcher := Searcher{}
+	searcher := search.BookSearcher{}
 	err := searcher.Load("completeworks.txt")
 	if err != nil {
 		log.Fatal(err)
@@ -40,7 +42,7 @@ type Searcher struct {
 	SuffixArray   *suffixarray.Index
 }
 
-func handleSearch(searcher Searcher) func(w http.ResponseWriter, r *http.Request) {
+func handleSearch(searcher search.BookSearcher) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		query, ok := r.URL.Query()["q"]
 		if !ok || len(query[0]) < 1 {
@@ -48,7 +50,7 @@ func handleSearch(searcher Searcher) func(w http.ResponseWriter, r *http.Request
 			w.Write([]byte("missing search query in URL params"))
 			return
 		}
-		results := searcher.Search(query[0])
+		results := searcher.SearchSummaries(query[0])
 		buf := &bytes.Buffer{}
 		enc := json.NewEncoder(buf)
 		err := enc.Encode(results)
