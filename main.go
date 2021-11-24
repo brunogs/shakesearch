@@ -24,6 +24,7 @@ func main() {
 	http.Handle("/", fs)
 
 	http.HandleFunc("/search", handleSearch(searcher))
+	http.HandleFunc("/book", handleBookSearch(searcher))
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -54,6 +55,28 @@ func handleSearch(searcher search.BookSearcher) func(w http.ResponseWriter, r *h
 		buf := &bytes.Buffer{}
 		enc := json.NewEncoder(buf)
 		err := enc.Encode(results)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("encoding failure"))
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(buf.Bytes())
+	}
+}
+
+func handleBookSearch(searcher search.BookSearcher) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		title, ok := r.URL.Query()["title"]
+		if !ok || len(title[0]) < 1 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("missing search query in URL params"))
+			return
+		}
+		results := searcher.FindContainsTitles(title[0])
+		buf := &bytes.Buffer{}
+		enc := json.NewEncoder(buf)
+		err := enc.Encode(results[0])
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("encoding failure"))
