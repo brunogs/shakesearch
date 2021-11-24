@@ -72,9 +72,9 @@ const Controller = {
           `)
         }
         quotesCards.push(`
-            <p class="list-group-item list-group-item-action flex-column align-items-start">
+            <a href="#" class="list-group-item list-group-item-action flex-column align-items-start read-more" data-title="${q.Title}">
               <small class="text-muted">Read more...</small>
-            </p>
+            </a>
           `)
       }
       quotesCards.push(`</div>`);
@@ -86,6 +86,7 @@ const Controller = {
     if (quotesCards.length > 0) {
       quotesPlace.innerHTML = quotesCards.join('');
       quotesPlace.parentElement.style.visibility = "visible";
+      bindReadMore();
     }
   },
 
@@ -130,7 +131,16 @@ for (let button of buttons) {
   button.addEventListener("click", Controller.getBookByTitle);
 }
 
-$(function() {
+function bindReadMore() {
+  $('.read-more').on('click', function (event) {
+    const component = $(this)
+    const title = component.data('title')
+    $('#query').val(title)
+    $('#search-button').trigger('click')
+  });
+}
+
+$(document).ready(function(){
 
   $('#quote-modal').on('show.bs.modal', function (event) {
     const component = $(event.relatedTarget)
@@ -138,5 +148,5 @@ $(function() {
     const modal = $(this)
     modal.find('.modal-body pre').text(quoteContent)
   });
-
+  bindReadMore();
 });
