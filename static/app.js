@@ -6,6 +6,7 @@ const Controller = {
     Spinner.show();
     Controller.cleanResults();
     if ((data.query || "").length === 0) {
+      Spinner.hide();
       return;
     }
     const response = fetch(`/search?q=${data.query}`).then((response) => {
