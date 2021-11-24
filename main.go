@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"index/suffixarray"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -22,8 +20,12 @@ func main() {
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/", fs)
 
-	http.HandleFunc("/search", handleSearch(searcher))
-	http.HandleFunc("/book", handleBookSearch(searcher))
+	http.HandleFunc("/search", handleGetRequest("q", func(query string) interface{} {
+		return searcher.SearchSummaries(query)
+	}))
+	http.HandleFunc("/book", handleGetRequest("title", func(query string) interface{} {
+		return searcher.FindContainsTitles(query)
+	}))
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -37,20 +39,15 @@ func main() {
 	}
 }
 
-type Searcher struct {
-	CompleteWorks string
-	SuffixArray   *suffixarray.Index
-}
-
-func handleSearch(searcher search.BookSearcher) func(w http.ResponseWriter, r *http.Request) {
+func handleGetRequest(parameter string, f func(query string) interface{}) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		query, ok := r.URL.Query()["q"]
+		query, ok := r.URL.Query()[parameter]
 		if !ok || len(query[0]) < 1 {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("missing search query in URL params"))
 			return
 		}
-		results := searcher.SearchSummaries(query[0])
+		results := f(query[0])
 		buf := &bytes.Buffer{}
 		enc := json.NewEncoder(buf)
 		err := enc.Encode(results)
@@ -62,45 +59,4 @@ func handleSearch(searcher search.BookSearcher) func(w http.ResponseWriter, r *h
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(buf.Bytes())
 	}
-}
-
-func handleBookSearch(searcher search.BookSearcher) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		title, ok := r.URL.Query()["title"]
-		if !ok || len(title[0]) < 1 {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("missing search query in URL params"))
-			return
-		}
-		results := searcher.FindContainsTitles(title[0])
-		buf := &bytes.Buffer{}
-		enc := json.NewEncoder(buf)
-		err := enc.Encode(results[0])
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("encoding failure"))
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(buf.Bytes())
-	}
-}
-
-func (s *Searcher) Load(filename string) error {
-	dat, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return fmt.Errorf("Load: %w", err)
-	}
-	s.CompleteWorks = string(dat)
-	s.SuffixArray = suffixarray.New(dat)
-	return nil
-}
-
-func (s *Searcher) Search(query string) []string {
-	idxs := s.SuffixArray.Lookup([]byte(query), -1)
-	results := []string{}
-	for _, idx := range idxs {
-		results = append(results, s.CompleteWorks[idx-250:idx+250])
-	}
-	return results
 }

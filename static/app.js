@@ -103,8 +103,8 @@ const Controller = {
     const booksPlace = document.getElementById("books_place");
     const booksCards = [];
 
-    if (results) {
-      for (let b of [results]) {
+    if ((results || []).length > 0) {
+      for (let b of results) {
         booksCards.push(`<h5 class="card-title">${b.Title}</h5>`);
         for (let c of b.Chapters) {
           booksCards.push(`
