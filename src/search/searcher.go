@@ -3,6 +3,7 @@ package search
 import (
 	"fmt"
 	"pulley.com/shakesearch/src/book"
+	"pulley.com/shakesearch/src/resources"
 	"regexp"
 )
 
@@ -19,14 +20,15 @@ func (s *BookSearcher) Load(filename string) error {
 	return nil
 }
 
-func (s *BookSearcher) SearchSummaries(query string) []book.Book {
-	results := []book.Book{}
-	for _, b := range s.Books[0:2] {
-		b.Chapters = b.Chapters[:1]
-		b.Chapters[0].Content = b.Chapters[0].Content[0:250] + "..."
-		results = append(results, b)
+func (s *BookSearcher) SearchSummaries(query string) resources.QueryResponse {
+	books := s.FindContainsTitles(query)
+	chapters := s.FindContainsChapterName(query)
+	quotes := s.FindContainsChapterContent(query)
+	return resources.QueryResponse{
+		Books:    books,
+		Chapters: chapters,
+		Quotes:   quotes,
 	}
-	return results
 }
 
 func (s *BookSearcher) FindContainsTitles(query string) []book.Book {
