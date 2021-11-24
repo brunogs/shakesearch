@@ -108,9 +108,9 @@ const Controller = {
         booksCards.push(`<h5 class="card-title">${b.Title}</h5>`);
         for (let c of b.Chapters) {
           booksCards.push(`
-            <div class="card" style="width: 200rem;">
+            <div class="card">
               <div class="card-body">
-                <pre class="card-text" style="max-width: 200rem">${c.Content}</pre>
+                <pre class="card-text">${c.Content}</pre>
               </div>
             </div>
           `)
