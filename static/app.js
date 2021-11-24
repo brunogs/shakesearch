@@ -27,6 +27,7 @@ const Controller = {
   updateSearchResult: (results) => {
     const booksPlace = document.getElementById("books_place");
     const quotesPlace = document.getElementById("quotes_place");
+    const noResults = document.getElementById("no_results");
     const booksCards = [];
     const quotesCards = [];
 
@@ -82,10 +83,12 @@ const Controller = {
     if (booksCards.length > 0) {
       booksPlace.innerHTML = booksCards.join('');
       booksPlace.parentElement.style.visibility = "visible";
+      noResults.style.visibility = "hidden";
     }
     if (quotesCards.length > 0) {
       quotesPlace.innerHTML = quotesCards.join('');
       quotesPlace.parentElement.style.visibility = "visible";
+      noResults.style.visibility = "hidden";
       bindReadMore();
     }
   },
@@ -93,14 +96,17 @@ const Controller = {
   cleanResults: () => {
     const booksPlace = document.getElementById("books_place");
     const quotesPlace = document.getElementById("quotes_place");
+    const noResults = document.getElementById("no_results");
     booksPlace.innerHTML = '';
     quotesPlace.innerHTML = '';
     booksPlace.parentElement.style.visibility = "hidden";
     quotesPlace.parentElement.style.visibility = "hidden";
+    noResults.style.visibility = "visible";
   },
 
   updateBookContent: (results) => {
     const booksPlace = document.getElementById("books_place");
+    const noResults = document.getElementById("no_results");
     const booksCards = [];
 
     if ((results || []).length > 0) {
@@ -120,6 +126,7 @@ const Controller = {
 
     booksPlace.innerHTML = booksCards.join('');
     booksPlace.parentElement.style.visibility = "visible";
+    noResults.style.visibility = "hidden";
   }
 };
 

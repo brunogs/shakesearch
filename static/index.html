@@ -8,7 +8,7 @@
   <script src="https://code.jquery.com/jquery.js"></script>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="main.css?version=5">
+  <link rel="stylesheet" href="main.css?version=6">
   <meta name="theme-color" content="#fafafa">
 </head>
 
@@ -17,17 +17,17 @@
 
         <div class="container">
             <div class="container" style="height: 310px;">
-                <div class="row search-bar">
+                <div class="row center">
                     <img src="img/skull-illustration.svg" alt="Hamlet Skull">
                 </div>
-                <div class="row search-bar">
+                <div class="row center">
                     <h1>To Be ? Or Not to be ?</h1>
                 </div>
-                <div class="row search-bar">
+                <div class="row center">
                     <p>That was Shakespeare question.</p>
                 </div>
             </div>
-            <div class="row search-bar">
+            <div class="row center">
                 <div class="col-md-8">
                     <form id="form" class="form-search">
                         <div class="input-group">
@@ -52,6 +52,13 @@
 
             </div>
         </div>
+
+        <div class="container" id="no_results">
+            <hr>
+            <div class="row center">
+                <h2>No Answers</h2>
+            </div>
+        </div>
     </main>
 
     <div class="modal fade" id="quote-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -69,7 +76,7 @@
             </div>
         </div>
     </div>
-  <script src="app.js?version=5"></script>
+  <script src="app.js?version=6"></script>
 </body>
 
 </html>
