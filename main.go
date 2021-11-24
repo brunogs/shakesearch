@@ -13,7 +13,6 @@ import (
 )
 
 func main() {
-	//searcher := Searcher{}
 	searcher := search.BookSearcher{}
 	err := searcher.Load("completeworks.txt")
 	if err != nil {

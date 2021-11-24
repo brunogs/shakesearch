@@ -6,6 +6,7 @@ import (
 	"pulley.com/shakesearch/src/resources"
 	"regexp"
 	"strings"
+	"sync"
 )
 
 type BookSearcher struct {
@@ -68,23 +69,15 @@ func (s *BookSearcher) FindContainsChapterName(query string) []book.Book {
 
 func (s *BookSearcher) FindContainsChapterContent(query string) []book.Book {
 	results := []book.Book{}
-	pattern, err := regexp.Compile(fmt.Sprintf("(?im)([^.]* %s [^.]*)\\.", query))
-	if err != nil {
-		return results
-	}
 	for _, b := range s.Books {
+		chapterChannel := s.matchChapterContent(query, b)
 		var chapters []book.Chapter
 		sentencesSet := make(map[string]struct{})
-		for _, c := range b.Chapters {
-			if pattern.MatchString(c.Content) {
-				sentences := pattern.FindAllString(c.Content, -1)
-				for _, s := range sentences {
-					cleanSentence := strings.Trim(s, "\\s")
-					if _, sentenceUsed := sentencesSet[cleanSentence]; !sentenceUsed && len(cleanSentence) > 10 {
-						chapters = append(chapters, book.Chapter{Name: c.Name, Content: s})
-						sentencesSet[cleanSentence] = struct{}{}
-					}
-				}
+		for c := range chapterChannel {
+			cleanSentence := strings.Trim(c.Content, "\\s")
+			if _, sentenceUsed := sentencesSet[cleanSentence]; !sentenceUsed {
+				chapters = append(chapters, c)
+				sentencesSet[cleanSentence] = struct{}{}
 			}
 		}
 		if len(chapters) > 0 {
@@ -94,4 +87,32 @@ func (s *BookSearcher) FindContainsChapterContent(query string) []book.Book {
 		}
 	}
 	return results
+}
+
+func (s *BookSearcher) matchChapterContent(query string, b book.Book) <-chan book.Chapter {
+	chapterChannel := make(chan book.Chapter)
+	pattern, _ := regexp.Compile(fmt.Sprintf("(?im)([^.]* %s [^.]*)\\.", query))
+	var wg sync.WaitGroup
+	go func() {
+		for _, c := range b.Chapters {
+			wg.Add(1)
+			go s.matchContent(pattern, c, chapterChannel, &wg)
+		}
+		wg.Wait()
+		defer close(chapterChannel)
+	}()
+	return chapterChannel
+}
+
+func (s *BookSearcher) matchContent(pattern *regexp.Regexp, c book.Chapter, chapters chan book.Chapter, wg *sync.WaitGroup) {
+	if pattern.MatchString(c.Content) {
+		sentences := pattern.FindAllString(c.Content, -1)
+		for _, s := range sentences {
+			cleanSentence := strings.Trim(s, "\\s")
+			if len(cleanSentence) > 10 {
+				chapters <- book.Chapter{Name: c.Name, Content: s}
+			}
+		}
+	}
+	defer wg.Done()
 }
