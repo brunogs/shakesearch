@@ -43,7 +43,7 @@ func TestFilterBooksByChapterContent(t *testing.T) {
 	searcher := search.BookSearcher{}
 	err := searcher.Load("../../completeworks.txt")
 
-	result := searcher.FindContainsChapterContent("Hamlet")
+	result := searcher.FindContainsChapterContent("scene")
 	if len(result) < 1 || err != nil {
 		t.Fatalf(`The searcher was not able to find by chapter content %v  %d`, err, len(result))
 	}

@@ -5,6 +5,7 @@ import (
 	"pulley.com/shakesearch/src/book"
 	"pulley.com/shakesearch/src/resources"
 	"regexp"
+	"strings"
 )
 
 type BookSearcher struct {
@@ -33,7 +34,7 @@ func (s *BookSearcher) SearchSummaries(query string) resources.QueryResponse {
 
 func (s *BookSearcher) FindContainsTitles(query string) []book.Book {
 	results := []book.Book{}
-	pattern, err := regexp.Compile(fmt.Sprintf("(?i)%s", query))
+	pattern, err := regexp.Compile(fmt.Sprintf("(?i)\\b%s\\b", query))
 	if err != nil {
 		return results
 	}
@@ -47,7 +48,7 @@ func (s *BookSearcher) FindContainsTitles(query string) []book.Book {
 
 func (s *BookSearcher) FindContainsChapterName(query string) []book.Book {
 	results := []book.Book{}
-	pattern, err := regexp.Compile(fmt.Sprintf("(?i)%s", query))
+	pattern, err := regexp.Compile(fmt.Sprintf("(?i)\\b%s\\b", query))
 	if err != nil {
 		return results
 	}
@@ -69,15 +70,23 @@ func (s *BookSearcher) FindContainsChapterName(query string) []book.Book {
 
 func (s *BookSearcher) FindContainsChapterContent(query string) []book.Book {
 	results := []book.Book{}
-	pattern, err := regexp.Compile(fmt.Sprintf("(?i)%s", query))
+	pattern, err := regexp.Compile(fmt.Sprintf("(?im)([^.]* %s [^.]*)\\.", query))
 	if err != nil {
 		return results
 	}
 	for _, b := range s.Books {
 		var chapters []book.Chapter
+		sentencesSet := make(map[string]struct{})
 		for _, c := range b.Chapters {
 			if pattern.MatchString(c.Content) {
-				chapters = append(chapters, c)
+				sentences := pattern.FindAllString(c.Content, -1)
+				for _, s := range sentences {
+					cleanSentence := strings.Trim(s, "\\s")
+					if _, sentenceUsed := sentencesSet[cleanSentence]; !sentenceUsed && len(cleanSentence) > 100 {
+						chapters = append(chapters, book.Chapter{Name: c.Name, Content: s})
+						sentencesSet[cleanSentence] = struct{}{}
+					}
+				}
 			}
 		}
 		if len(chapters) > 0 {
