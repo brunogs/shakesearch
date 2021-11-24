@@ -3,6 +3,7 @@ const Controller = {
     ev.preventDefault();
     const form = document.getElementById("form");
     const data = Object.fromEntries(new FormData(form));
+    Spinner.show();
     Controller.cleanResults();
     if ((data.query || "").length === 0) {
       return;
@@ -10,16 +11,19 @@ const Controller = {
     const response = fetch(`/search?q=${data.query}`).then((response) => {
       response.json().then((results) => {
         Controller.updateSearchResult(results);
+        Spinner.hide();
       });
     });
   },
 
   getBookByTitle: (id) => {
     const form = document.getElementById(id);
+    Spinner.show();
     Controller.cleanResults();
     const response = fetch(`/book?title=${form.title}`).then((response) => {
       response.json().then((results) => {
         Controller.updateBookContent(results);
+        Spinner.hide();
       });
     });
   },
@@ -96,12 +100,10 @@ const Controller = {
   cleanResults: () => {
     const booksPlace = document.getElementById("books_place");
     const quotesPlace = document.getElementById("quotes_place");
-    const noResults = document.getElementById("no_results");
     booksPlace.innerHTML = '';
     quotesPlace.innerHTML = '';
     booksPlace.parentElement.style.visibility = "hidden";
     quotesPlace.parentElement.style.visibility = "hidden";
-    noResults.style.visibility = "visible";
   },
 
   updateBookContent: (results) => {
@@ -148,7 +150,8 @@ function bindReadMore() {
 }
 
 $(document).ready(function(){
-
+  Spinner();
+  Spinner.hide();
   $('#quote-modal').on('show.bs.modal', function (event) {
     const component = $(event.relatedTarget)
     const quoteContent = component.data('content')
