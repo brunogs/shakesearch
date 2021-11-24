@@ -23,12 +23,10 @@ func (s *BookSearcher) Load(filename string) error {
 
 func (s *BookSearcher) SearchSummaries(query string) resources.QueryResponse {
 	books := s.FindContainsTitles(query)
-	chapters := s.FindContainsChapterName(query)
 	quotes := s.FindContainsChapterContent(query)
 	return resources.QueryResponse{
-		Books:    books,
-		Chapters: chapters,
-		Quotes:   quotes,
+		Books:  books,
+		Quotes: quotes,
 	}
 }
 
@@ -82,7 +80,7 @@ func (s *BookSearcher) FindContainsChapterContent(query string) []book.Book {
 				sentences := pattern.FindAllString(c.Content, -1)
 				for _, s := range sentences {
 					cleanSentence := strings.Trim(s, "\\s")
-					if _, sentenceUsed := sentencesSet[cleanSentence]; !sentenceUsed && len(cleanSentence) > 100 {
+					if _, sentenceUsed := sentencesSet[cleanSentence]; !sentenceUsed && len(cleanSentence) > 10 {
 						chapters = append(chapters, book.Chapter{Name: c.Name, Content: s})
 						sentencesSet[cleanSentence] = struct{}{}
 					}
