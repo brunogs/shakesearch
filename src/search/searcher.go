@@ -9,6 +9,12 @@ import (
 	"sync"
 )
 
+const (
+	minimumCharacterForSentence int    = 40
+	regexSimpleTerm             string = "(?i)\\b%s\\b"
+	regexChapterContent         string = "(?im)(([^.]*)?%s\\b[^.]*)\\."
+)
+
 type BookSearcher struct {
 	Books []book.Book
 }
@@ -33,7 +39,7 @@ func (s *BookSearcher) SearchSummaries(query string) resources.QueryResponse {
 
 func (s *BookSearcher) FindContainsTitles(query string) []book.Book {
 	results := []book.Book{}
-	pattern, err := regexp.Compile(fmt.Sprintf("(?i)\\b%s\\b", query))
+	pattern, err := regexp.Compile(fmt.Sprintf(regexSimpleTerm, query))
 	if err != nil {
 		return results
 	}
@@ -47,7 +53,7 @@ func (s *BookSearcher) FindContainsTitles(query string) []book.Book {
 
 func (s *BookSearcher) FindContainsChapterName(query string) []book.Book {
 	results := []book.Book{}
-	pattern, err := regexp.Compile(fmt.Sprintf("(?i)\\b%s\\b", query))
+	pattern, err := regexp.Compile(fmt.Sprintf(regexSimpleTerm, query))
 	if err != nil {
 		return results
 	}
@@ -91,7 +97,7 @@ func (s *BookSearcher) FindContainsChapterContent(query string) []book.Book {
 
 func (s *BookSearcher) matchChapterContent(query string, b book.Book) <-chan book.Chapter {
 	chapterChannel := make(chan book.Chapter)
-	pattern, _ := regexp.Compile(fmt.Sprintf("(?im)(([^.]*)?%s\\b[^.]*)\\.", query))
+	pattern, _ := regexp.Compile(fmt.Sprintf(regexChapterContent, query))
 	var wg sync.WaitGroup
 	go func() {
 		for _, c := range b.Chapters {
@@ -108,8 +114,8 @@ func (s *BookSearcher) matchContent(pattern *regexp.Regexp, c book.Chapter, chap
 	if pattern.MatchString(c.Content) {
 		sentences := pattern.FindAllString(c.Content, -1)
 		for _, s := range sentences {
-			cleanSentence := strings.Trim(s, "\\s")
-			if len(cleanSentence) > 10 {
+			cleanSentence := strings.TrimSpace(s)
+			if len(cleanSentence) > minimumCharacterForSentence {
 				chapters <- book.Chapter{Name: c.Name, Content: s}
 			}
 		}
