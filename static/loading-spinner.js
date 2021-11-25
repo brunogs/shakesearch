@@ -12,7 +12,7 @@ function Spinner(){
 	c.setAttribute('cy','50');
 	c.setAttribute('r','42');
 	c.setAttribute('stroke-width','16');
-	c.setAttribute('stroke','#2196f3');
+	c.setAttribute('stroke','#495057');
 	c.setAttribute('fill','transparent');
 	Spinner.element.appendChild(c);
 	Spinner.element.style.cssText='position:absolute;left:calc(50% - 50px);top:calc(50% - 50px)';
