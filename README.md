@@ -59,7 +59,8 @@ So I did the following steps:
 ## Next steps
 
 1. I tried to use some goroutines, but I think is possible to do better to improve performance.
-2. Adopt a search engine, like [bleve](https://blevesearch.com/) or elastic-search.
-3. More search features using an engine, like autocomplete, mis-spellings, score results.
-4. Reading a book on a big page is a little difficult, I could use pagination and persistence to preserve the user reading progress.
-5. Modernize the frontend using React.
+2. Apply highlights in result text.
+3. Adopt a search engine, like [bleve](https://blevesearch.com/) or elastic-search.
+4. More search features using an engine, like autocomplete, mis-spellings, score results.
+5. Reading a book on a big page is a little difficult, I could use pagination and persistence to preserve the user reading progress.
+6. Modernize the frontend using React.
