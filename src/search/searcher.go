@@ -91,7 +91,7 @@ func (s *BookSearcher) FindContainsChapterContent(query string) []book.Book {
 
 func (s *BookSearcher) matchChapterContent(query string, b book.Book) <-chan book.Chapter {
 	chapterChannel := make(chan book.Chapter)
-	pattern, _ := regexp.Compile(fmt.Sprintf("(?im)([^.]* %s\\b[^.]*)\\.", query))
+	pattern, _ := regexp.Compile(fmt.Sprintf("(?im)(([^.]*)?%s\\b[^.]*)\\.", query))
 	var wg sync.WaitGroup
 	go func() {
 		for _, c := range b.Chapters {

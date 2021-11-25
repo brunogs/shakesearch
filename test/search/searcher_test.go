@@ -48,3 +48,42 @@ func TestFilterBooksByChapterContent(t *testing.T) {
 		t.Fatalf(`The searcher was not able to find by chapter content %v  %d`, err, len(result))
 	}
 }
+
+func TestFilterChapterContentInBeginOfChapter(t *testing.T) {
+	searcher := search.BookSearcher{}
+	err := searcher.Load("../../completeworks.txt")
+
+	result := searcher.FindContainsChapterContent("music to hear")
+	if len(result) < 1 || err != nil {
+		t.Fatalf(`The searcher was not able to find by chapter content %v  %d`, err, len(result))
+	}
+
+	result = searcher.FindContainsChapterContent("How CareFul")
+	if len(result) < 1 || err != nil {
+		t.Fatalf(`The searcher was not able to find by chapter content %v  %d`, err, len(result))
+	}
+}
+
+func TestFilterChapterContentInEndOfChapter(t *testing.T) {
+	searcher := search.BookSearcher{}
+	err := searcher.Load("../../completeworks.txt")
+
+	result := searcher.FindContainsChapterContent("up peerless")
+	if len(result) < 1 || err != nil {
+		t.Fatalf(`The searcher was not able to find by chapter content %v  %d`, err, len(result))
+	}
+}
+
+func TestFilterChapterContentWithSpecialCharacter(t *testing.T) {
+	searcher := search.BookSearcher{}
+	err := searcher.Load("../../completeworks.txt")
+
+	result := searcher.FindContainsChapterContent("music sadly?")
+	if len(result) < 1 || err != nil {
+		t.Fatalf(`The searcher was not able to find by chapter content %v  %d`, err, len(result))
+	}
+	result = searcher.FindContainsChapterContent("To be, Or Not to BE")
+	if len(result) < 1 || err != nil {
+		t.Fatalf(`The searcher was not able to find by chapter content %v  %d`, err, len(result))
+	}
+}
