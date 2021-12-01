@@ -33,6 +33,7 @@ const Controller = {
     const booksPlace = document.getElementById("books_place");
     const quotesPlace = document.getElementById("quotes_place");
     const noResults = document.getElementById("no_results");
+    noResults.style.visibility = "visible";
     const booksCards = [];
     const quotesCards = [];
 
@@ -59,29 +60,15 @@ const Controller = {
 
     if ((results.Quotes || []).length > 0) {
       quotesCards.push(`<div class="list-group">`);
-      for (let q of results.Quotes) {
+      for (let i = 0; i < results.Quotes.length; i++) {
+        const q = results.Quotes[i]
         quotesCards.push(`
-            <a href="#" class="list-group-item list-group-item-action flex-column align-items-start" 
-                data-toggle="modal" data-target="#quote-modal" data-content="${q.Chapters[0].Content}">
+            <div class="list-group-item list-group-item-action flex-column align-items-start">
               <div class="d-flex w-100 justify-content-between">
-                <h5 class="mb-1">${q.Title}</h5>
+                <a href="#" title="${q.Title}" id="get-quote-${i}" onclick="Controller.getBookByTitle('get-quote-${i}')"><h5 class="mb-1">${q.Title}</h5></a>
               </div>
-              <p class="mb-1">${q.Chapters[0].Content.substr(0, 200) + "..."}</p>
-            </a>`)
-        for (let it = 1; it < 5; it++) {
-          if (!q.Chapters[it])
-            break
-          quotesCards.push(`
-            <a href="#" class="list-group-item list-group-item-action flex-column align-items-start" data-toggle="modal" data-target="#quote-modal" data-content="${q.Chapters[it].Content}">
-              <small class="text-muted">${q.Chapters[it].Content}</small>
-            </a>
-          `)
-        }
-        quotesCards.push(`
-            <a href="#" class="list-group-item list-group-item-action flex-column align-items-start read-more" data-title="${q.Title}">
-              <small class="text-muted">Read more...</small>
-            </a>
-          `)
+              <pre class="mb-1">${q.Chapters[0].Content + "..."}</pre>
+            </div>`)
       }
       quotesCards.push(`</div>`);
     }
