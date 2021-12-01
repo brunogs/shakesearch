@@ -21,10 +21,10 @@ func main() {
 	http.Handle("/", fs)
 
 	http.HandleFunc("/search", handleGetRequest("q", func(query string) interface{} {
-		return searcher.SearchSummaries(query)
+		return searcher.Search(query)
 	}))
 	http.HandleFunc("/book", handleGetRequest("title", func(query string) interface{} {
-		return searcher.FindContainsTitles(query)
+		return searcher.FindBook(query)
 	}))
 
 	port := os.Getenv("PORT")

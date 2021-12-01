@@ -2,8 +2,10 @@ package search
 
 import (
 	"fmt"
+	"github.com/blevesearch/bleve/v2"
 	"pulley.com/shakesearch/src/book"
 	"pulley.com/shakesearch/src/resources"
+	"reflect"
 	"regexp"
 	"strings"
 	"sync"
@@ -16,25 +18,92 @@ const (
 )
 
 type BookSearcher struct {
-	Books []book.Book
+	Books        []book.Book
+	bookIndex    *bleve.Index
+	chapterIndex *bleve.Index
 }
 
 func (s *BookSearcher) Load(filename string) error {
-	books, err := book.Parse(filename)
+	books, booksIndex, chapterIndex, err := book.Parse(filename)
 	if err != nil {
 		return fmt.Errorf("Load: %w", err)
 	}
 	s.Books = books
+	s.bookIndex = booksIndex
+	s.chapterIndex = chapterIndex
 	return nil
 }
 
-func (s *BookSearcher) SearchSummaries(query string) resources.QueryResponse {
-	books := s.FindContainsTitles(query)
-	quotes := s.FindContainsChapterContent(query)
+func (s *BookSearcher) Search(query string) resources.QueryResponse {
+	books := searchDocuments(query, "Title", s.bookIndex)
+	quotes := searchDocuments(query, "Content", s.chapterIndex)
+
 	return resources.QueryResponse{
 		Books:  books,
 		Quotes: quotes,
 	}
+}
+
+func searchDocuments(query string, fieldToSearch string, index *bleve.Index) []book.Book {
+	queryTerm := bleve.NewConjunctionQuery()
+	for _, term := range strings.Fields(cleanQuery(query)) {
+		q := bleve.NewMatchQuery(term)
+		q.SetField(fieldToSearch)
+		if reflect.DeepEqual(fieldToSearch, "Content") {
+			q.Analyzer = "enWithStopWords"
+		}
+		queryTerm.AddQuery(q)
+	}
+
+	phraseQuery := bleve.NewPhraseQuery(strings.Fields(cleanQuery(query)), fieldToSearch)
+
+	finalQuery := bleve.NewDisjunctionQuery(queryTerm, phraseQuery)
+	search := bleve.NewSearchRequest(finalQuery)
+	search.Fields = []string{"Title"}
+	search.Highlight = bleve.NewHighlightWithStyle("html")
+	searchResults, _ := (*index).Search(search)
+
+	results := []book.Book{}
+	for _, hit := range searchResults.Hits {
+		for k, v := range hit.Fragments {
+			c := book.Chapter{Name: k, Content: v[0]}
+			results = append(results, book.Book{
+				Title:    hit.Fields["Title"].(string),
+				Chapters: []book.Chapter{c},
+			})
+		}
+	}
+	return results
+}
+
+func cleanQuery(query string) string {
+	onlyAlphaNumeric := regexp.MustCompile("(?i)[^A-Z0-9\\s]+").ReplaceAllString(query, "")
+	return strings.ToLower(onlyAlphaNumeric)
+}
+
+func (s *BookSearcher) FindBook(title string) []book.Book {
+	queryById := bleve.NewDocIDQuery([]string{title})
+	search := bleve.NewSearchRequest(queryById)
+	search.Fields = []string{"*"}
+	searchResults, _ := (*s.bookIndex).Search(search)
+
+	results := []book.Book{}
+	var chapters []book.Chapter
+
+	for _, hit := range searchResults.Hits {
+		title := hit.Fields["Title"].(string)
+		contents := hit.Fields["Chapters.Content"]
+
+		switch reflect.TypeOf(contents).Kind() {
+		case reflect.Slice:
+			s := reflect.ValueOf(contents)
+			for i := 0; i < s.Len(); i++ {
+				chapters = append(chapters, book.Chapter{Content: s.Index(i).Interface().(string)})
+			}
+		}
+		results = append(results, book.Book{Title: title, Chapters: chapters})
+	}
+	return results
 }
 
 func (s *BookSearcher) FindContainsTitles(query string) []book.Book {
