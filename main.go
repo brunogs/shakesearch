@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -57,6 +58,10 @@ func handleGetRequest(parameter string, f func(query string) interface{}) func(w
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(buf.Bytes())
+		w.Header().Set("Content-Encoding", "gzip")
+		w.Header().Set("Cache-Control", "max-age=300")
+		gz := gzip.NewWriter(w)
+		defer gz.Close()
+		gz.Write(buf.Bytes())
 	}
 }

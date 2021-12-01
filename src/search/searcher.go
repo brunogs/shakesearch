@@ -35,13 +35,21 @@ func (s *BookSearcher) Load(filename string) error {
 }
 
 func (s *BookSearcher) Search(query string) resources.QueryResponse {
-	books := searchDocuments(query, "Title", s.bookIndex)
-	quotes := searchDocuments(query, "Content", s.chapterIndex)
-
-	return resources.QueryResponse{
-		Books:  books,
-		Quotes: quotes,
-	}
+	response := &resources.QueryResponse{}
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		books := searchDocuments(query, "Title", s.bookIndex)
+		response.Books = books
+		wg.Done()
+	}()
+	go func() {
+		quotes := searchDocuments(query, "Content", s.chapterIndex)
+		response.Quotes = quotes
+		wg.Done()
+	}()
+	wg.Wait()
+	return *response
 }
 
 func searchDocuments(query string, fieldToSearch string, index *bleve.Index) []book.Book {
