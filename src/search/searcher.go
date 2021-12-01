@@ -12,7 +12,6 @@ import (
 )
 
 type BookSearcher struct {
-	Books        []book.Book
 	BooksByTitle map[string]book.Book
 	bookIndex    *bleve.Index
 	chapterIndex *bleve.Index
@@ -23,10 +22,9 @@ func (s *BookSearcher) Load(filename string) error {
 	if err != nil {
 		return fmt.Errorf("Load: %w", err)
 	}
-	s.Books = books
 	s.BooksByTitle = make(map[string]book.Book)
-	for _, b := range s.Books {
-		s.BooksByTitle[strings.TrimSpace(b.Title)] = b
+	for _, b := range books {
+		s.BooksByTitle[strings.TrimSpace(b.Title)] = *b
 	}
 	s.bookIndex = booksIndex
 	s.chapterIndex = chapterIndex

@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func IndexDocuments(books []Book) (*bleve.Index, *bleve.Index) {
+func IndexDocuments(books []*Book) (*bleve.Index, *bleve.Index) {
 	bookMapping := buildBookIndexMapping()
 	chapterMapping := buildChapterIndexMapping()
 	booksIndex, _ := bleve.NewMemOnly(bookMapping)

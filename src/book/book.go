@@ -22,7 +22,7 @@ type Chapter struct {
 	Title   string
 }
 
-func Parse(filename string) ([]Book, *bleve.Index, *bleve.Index, error) {
+func Parse(filename string) ([]*Book, *bleve.Index, *bleve.Index, error) {
 	dat, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("parse failure: %w", err)
@@ -34,7 +34,7 @@ func Parse(filename string) ([]Book, *bleve.Index, *bleve.Index, error) {
 	fullContent := string(dat)[indexes[0]:]
 	contentByBook := titleSplitPattern.Split(fullContent, -1)
 
-	books := []Book{}
+	books := []*Book{}
 
 	for _, content := range contentByBook[:len(contentByBook)-1] {
 		newBook := parseBook(content)
@@ -47,11 +47,11 @@ func Parse(filename string) ([]Book, *bleve.Index, *bleve.Index, error) {
 	return books, booksIndex, chapterIndex, nil
 }
 
-func parseBook(bookContent string) Book {
+func parseBook(bookContent string) *Book {
 	titleAndContent := strings.SplitAfterN(bookContent, "\n", 2)
 	content := titleAndContent[1]
 	chapters := ParseChapters(content)
-	return Book{
+	return &Book{
 		Title:    titleAndContent[0],
 		Chapters: chapters,
 	}
