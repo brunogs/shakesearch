@@ -11,12 +11,6 @@ import (
 	"sync"
 )
 
-const (
-	minimumCharacterForSentence int    = 40
-	regexSimpleTerm             string = "(?i)\\b%s\\b"
-	regexChapterContent         string = "(?im)(([^.]*)?%s\\b[^.]*)\\."
-)
-
 type BookSearcher struct {
 	Books        []book.Book
 	BooksByTitle map[string]book.Book
@@ -96,90 +90,4 @@ func cleanQuery(query string) string {
 
 func (s *BookSearcher) FindBook(title string) []book.Book {
 	return []book.Book{s.BooksByTitle[title]}
-}
-
-func (s *BookSearcher) FindContainsTitles(query string) []book.Book {
-	results := []book.Book{}
-	pattern, err := regexp.Compile(fmt.Sprintf(regexSimpleTerm, query))
-	if err != nil {
-		return results
-	}
-	for _, b := range s.Books {
-		if pattern.MatchString(b.Title) {
-			results = append(results, b)
-		}
-	}
-	return results
-}
-
-func (s *BookSearcher) FindContainsChapterName(query string) []book.Book {
-	results := []book.Book{}
-	pattern, err := regexp.Compile(fmt.Sprintf(regexSimpleTerm, query))
-	if err != nil {
-		return results
-	}
-	for _, b := range s.Books {
-		var chapters []book.Chapter
-		for _, c := range b.Chapters {
-			if pattern.MatchString(c.Name) {
-				chapters = append(chapters, c)
-			}
-		}
-		if len(chapters) > 0 {
-			bookCopy := b
-			bookCopy.Chapters = chapters
-			results = append(results, bookCopy)
-		}
-	}
-	return results
-}
-
-func (s *BookSearcher) FindContainsChapterContent(query string) []book.Book {
-	results := []book.Book{}
-	for _, b := range s.Books {
-		chapterChannel := s.matchChapterContent(query, b)
-		var chapters []book.Chapter
-		sentencesSet := make(map[string]struct{})
-		for c := range chapterChannel {
-			cleanSentence := strings.Trim(c.Content, "\\s")
-			if _, sentenceUsed := sentencesSet[cleanSentence]; !sentenceUsed {
-				chapters = append(chapters, c)
-				sentencesSet[cleanSentence] = struct{}{}
-			}
-		}
-		if len(chapters) > 0 {
-			bookCopy := b
-			bookCopy.Chapters = chapters
-			results = append(results, bookCopy)
-		}
-	}
-	return results
-}
-
-func (s *BookSearcher) matchChapterContent(query string, b book.Book) <-chan book.Chapter {
-	chapterChannel := make(chan book.Chapter)
-	pattern, _ := regexp.Compile(fmt.Sprintf(regexChapterContent, query))
-	var wg sync.WaitGroup
-	go func() {
-		for _, c := range b.Chapters {
-			wg.Add(1)
-			go s.matchContent(pattern, c, chapterChannel, &wg)
-		}
-		wg.Wait()
-		defer close(chapterChannel)
-	}()
-	return chapterChannel
-}
-
-func (s *BookSearcher) matchContent(pattern *regexp.Regexp, c book.Chapter, chapters chan book.Chapter, wg *sync.WaitGroup) {
-	if pattern.MatchString(c.Content) {
-		sentences := pattern.FindAllString(c.Content, -1)
-		for _, s := range sentences {
-			cleanSentence := strings.TrimSpace(s)
-			if len(cleanSentence) > minimumCharacterForSentence {
-				chapters <- book.Chapter{Name: c.Name, Content: s}
-			}
-		}
-	}
-	defer wg.Done()
 }

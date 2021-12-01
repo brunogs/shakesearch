@@ -1,14 +1,13 @@
 package book
 
 import (
-	"pulley.com/shakesearch/src/book"
 	"regexp"
 	"strings"
 	"testing"
 )
 
 func TestParseNovelNumericBook(t *testing.T) {
-	books, _ := book.Parse("../../completeworks.txt")
+	books := GetBooks()
 	novelExample := books[0]
 
 	if strings.Trim(novelExample.Title, "\r\n") != "THE SONNETS" {
@@ -17,7 +16,7 @@ func TestParseNovelNumericBook(t *testing.T) {
 }
 
 func TestParseNovelWithNumericChapters(t *testing.T) {
-	books, _ := book.Parse("../../completeworks.txt")
+	books := GetBooks()
 	novelExample := books[0]
 
 	for _, c := range novelExample.Chapters {
@@ -31,7 +30,7 @@ func TestParseNovelWithNumericChapters(t *testing.T) {
 }
 
 func TestParseNovelRomanBook(t *testing.T) {
-	books, _ := book.Parse("../../completeworks.txt")
+	books := GetBooks()
 	tragedyExample := books[40]
 
 	if strings.Trim(tragedyExample.Title, "\r\n") != "THE PASSIONATE PILGRIM" {
@@ -40,7 +39,7 @@ func TestParseNovelRomanBook(t *testing.T) {
 }
 
 func TestParseNovelWithRomanChapters(t *testing.T) {
-	books, _ := book.Parse("../../completeworks.txt")
+	books := GetBooks()
 	tragedyExample := books[40]
 
 	for _, c := range tragedyExample.Chapters {

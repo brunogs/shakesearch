@@ -1,13 +1,12 @@
 package book
 
 import (
-	"pulley.com/shakesearch/src/book"
 	"strings"
 	"testing"
 )
 
 func TestParseTragedyBook(t *testing.T) {
-	books, _ := book.Parse("../../completeworks.txt")
+	books := GetBooks()
 	tragedyExample := books[1]
 
 	if strings.Trim(tragedyExample.Title, "\r\n") != "ALL’S WELL THAT ENDS WELL" {
@@ -16,7 +15,7 @@ func TestParseTragedyBook(t *testing.T) {
 }
 
 func TestParseTragedyChapters(t *testing.T) {
-	books, _ := book.Parse("../../completeworks.txt")
+	books := GetBooks()
 	tragedyExample := books[1]
 
 	if tragedyExample.Chapters[0].Name != "Introduction" {
