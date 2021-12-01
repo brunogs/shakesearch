@@ -48,7 +48,7 @@ func Parse(filename string) ([]Book, *bleve.Index, *bleve.Index, error) {
 
 	for _, content := range contentByBook[:len(contentByBook)-1] {
 		newBook := parseBook(content)
-		booksIndex.Index(strings.TrimSpace(newBook.Title), newBook)
+		booksIndex.Index(strings.TrimSpace(newBook.Title), Book{Title: newBook.Title})
 		for _, c := range newBook.Chapters {
 			c.Title = newBook.Title
 			chapterIndex.Index(newBook.Title+c.Name, c)
@@ -70,26 +70,11 @@ func parseBook(bookContent string) Book {
 
 func buildBookIndexMapping() mapping.IndexMapping {
 	titleFieldMapping := bleve.NewTextFieldMapping()
-	titleFieldMapping.IncludeTermVectors = true
-	titleFieldMapping.Analyzer = "enWithStopWords"
-
 	bookMapping := bleve.NewDocumentMapping()
 	bookMapping.AddFieldMappingsAt("Title", titleFieldMapping)
-
 	indexMapping := bleve.NewIndexMapping()
 	indexMapping.AddDocumentMapping("book", bookMapping)
-	indexMapping.AddCustomAnalyzer("enWithStopWords",
-		map[string]interface{}{
-			"type":      custom.Name,
-			"tokenizer": unicode.Name,
-			"token_filters": []string{
-				en.PossessiveName,
-				lowercase.Name,
-				porter.Name,
-			},
-		})
 	indexMapping.DefaultMapping = bookMapping
-
 	return indexMapping
 }
 
