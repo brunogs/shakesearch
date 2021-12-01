@@ -19,6 +19,7 @@ const (
 
 type BookSearcher struct {
 	Books        []book.Book
+	BooksByTitle map[string]book.Book
 	bookIndex    *bleve.Index
 	chapterIndex *bleve.Index
 }
@@ -29,6 +30,10 @@ func (s *BookSearcher) Load(filename string) error {
 		return fmt.Errorf("Load: %w", err)
 	}
 	s.Books = books
+	s.BooksByTitle = make(map[string]book.Book)
+	for _, b := range s.Books {
+		s.BooksByTitle[strings.TrimSpace(b.Title)] = b
+	}
 	s.bookIndex = booksIndex
 	s.chapterIndex = chapterIndex
 	return nil
@@ -90,28 +95,7 @@ func cleanQuery(query string) string {
 }
 
 func (s *BookSearcher) FindBook(title string) []book.Book {
-	queryById := bleve.NewDocIDQuery([]string{title})
-	search := bleve.NewSearchRequest(queryById)
-	search.Fields = []string{"*"}
-	searchResults, _ := (*s.bookIndex).Search(search)
-
-	results := []book.Book{}
-	var chapters []book.Chapter
-
-	for _, hit := range searchResults.Hits {
-		title := hit.Fields["Title"].(string)
-		contents := hit.Fields["Chapters.Content"]
-
-		switch reflect.TypeOf(contents).Kind() {
-		case reflect.Slice:
-			s := reflect.ValueOf(contents)
-			for i := 0; i < s.Len(); i++ {
-				chapters = append(chapters, book.Chapter{Content: s.Index(i).Interface().(string)})
-			}
-		}
-		results = append(results, book.Book{Title: title, Chapters: chapters})
-	}
-	return results
+	return []book.Book{s.BooksByTitle[title]}
 }
 
 func (s *BookSearcher) FindContainsTitles(query string) []book.Book {
